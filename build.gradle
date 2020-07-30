@@ -35,3 +35,10 @@ test {
     // Use junit platform for unit tests
     useJUnitPlatform()
 }
+
+task copyOutJar(type:Copy){
+    from 'build/libs'
+    into './'
+}
+
+build.finalizedBy copyOutJar
