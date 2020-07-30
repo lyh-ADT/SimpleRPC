@@ -1,14 +1,9 @@
 package com.lyh.rpc.server;
 
-import com.lyh.rpc.server.RPCCallHandler;
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
-import java.io.*;
+import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.HashMap;
-import java.util.Map;
 
 public class RPCServer {
     /**
@@ -17,7 +12,11 @@ public class RPCServer {
      * of the caller.
      */
     public static void start() throws IOException {
-        HttpServer server= HttpServer.create(new InetSocketAddress(10000), 0);
+        start(new InetSocketAddress(10000));
+    }
+
+    public static void start(InetSocketAddress address) throws IOException {
+        HttpServer server = HttpServer.create(address, 0);
         server.createContext("/", new RPCCallHandler());
         server.start();
     }

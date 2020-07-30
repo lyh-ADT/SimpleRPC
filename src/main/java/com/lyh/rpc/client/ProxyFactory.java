@@ -1,30 +1,38 @@
 package com.lyh.rpc.client;
 
 import java.io.*;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 
 public class ProxyFactory {
-    @SuppressWarnings("unchecked")
-    public static <T> T getProxy(Class<T> clazz){
+    private static URL url;
 
-        return (T)Proxy.newProxyInstance(clazz.getClassLoader(), new Class[]{clazz}, new InvocationHandler() {
-            @Override
-            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                Object returnValue = callRemote(clazz.getName(), method.getName(), args);
-                return returnValue;
-            }
-        });
+    static {
+        try {
+            ProxyFactory.setUrl("http://localhost:10000");
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
     }
 
-    private static Object callRemote(String className, String methodName, Object[] args){
+    public static void setUrl(String url) throws MalformedURLException {
+        ProxyFactory.url = new URL(url);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> T getProxy(Class<T> clazz) {
+
+        return (T) Proxy.newProxyInstance(clazz.getClassLoader(),
+                new Class[]{clazz},
+                (proxy, method, args) -> callRemote(clazz.getName(), method.getName(), args));
+    }
+
+    private static Object callRemote(String className, String methodName, Object[] args) {
         String message = "className="+className+"&methodName="+methodName+"&";
         byte[] data = message.getBytes();
         try {
-            URL url = new URL("http://localhost:10000");
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod("POST");
             urlConnection.setDoInput(true);
@@ -35,7 +43,6 @@ public class ProxyFactory {
 
             outputStream.write(data);
 
-            // 序列化参数
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
             objectOutputStream.writeObject(args);
             objectOutputStream.close();
